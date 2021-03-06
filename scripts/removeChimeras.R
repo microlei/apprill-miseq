@@ -15,4 +15,11 @@ dim(seqtab.nochim)
 cat("Proportion of original: \n")
 sum(seqtab.nochim)/sum(seqtab)
 
+save.image("removeChim.RData")
 saveRDS(seqtab.nochim, file=snakemake@output[['seqtab']])
+
+#tracking files
+track <- rowSums(seqtab.nochim)
+names(track) <- snakemake@params[['samples']]
+head(track)
+write.table(track, col.names=c("nochim"), snakemake@output[['track']], sep='\t')

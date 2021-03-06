@@ -4,25 +4,24 @@ configfile: "config.yaml"
 
 #Gets sample names of forward reads
 
-WC = glob_wildcards(config['path']+"{names}_{dir}.fastq.gz")
+WC = glob_wildcards(config['path']+"{names}_1.fastq.gz")
 SAMPLES = WC.names
 R1 = expand(config['path']+'{names}_1.fastq.gz', names=WC.names)
 R2 = expand(config['path']+'{names}_2.fastq.gz', names=WC.names)
 
 #local rules marks a rule as local and does not need to be submitted as a job to the cluster
-localrules: all, plotQP, learnError
+localrules: all, plotQP, track
 
 #this rule specifies all things you want generated
 rule all:
 	input:
-		"output/filtered.rds",
 		"output/errorRates_R1.rds",
 		"output/seqtab_nochimeras.rds",
-		#"output/track_reads.csv",
 		"output/ASVs.txt",
 		"output/taxonomy.txt",
 		"output/ASVseqs.txt",
-		"output/tree.nwk"
+		"output/tree.nwk",
+		"output/track.tsv"
 
 #clears all outputs (except for plotted quality profiles)
 rule clean:
@@ -50,7 +49,7 @@ rule filter:
 	output:
 		R1 = expand(config['path']+"filtered/{sample}_R1.fastq.gz", sample=SAMPLES), 
 		R2 = expand(config['path']+"filtered/{sample}_R2.fastq.gz", sample=SAMPLES),
-		filtered = "output/filtered.rds"
+		track = temp("output/track_filtered.txt")
 	params:
 		samples = SAMPLES
 	log:
@@ -80,7 +79,10 @@ rule dereplicate:
 		errR1 = rules.learnError.output.errR1,
 		errR2 = rules.learnError.output.errR2
 	output:
-		seqtab = "output/seqtab_withchimeras.rds"
+		seqtab = "output/seqtab_withchimeras.rds",
+		track = temp("output/track_derep.txt")
+	params:
+		samples = WC.names
 	log:
 		"logs/dereplicate.txt"
 	script:
@@ -92,13 +94,27 @@ rule removeChimeras:
 		seqtab = rules.dereplicate.output.seqtab,
 	output:
 		seqtab = "output/seqtab_nochimeras.rds",
+		track = temp("output/track_removeChimeras.txt")
+	params:
+		samples = WC.names
 	log:
 		"logs/removeChimeras.txt"
 	script:
 		"scripts/removeChimeras.R"
 
-#this is where the results are tracked
-#I moved it into its own script in case I wanted to format it differently
+rule track:
+	input:
+		filt = rules.filter.output.track,
+		derep = rules.dereplicate.output.track,
+		nochim = rules.removeChimeras.output.track
+	output:
+		track = "output/track.tsv"
+	log:
+		"logs/track.txt"
+	script:
+		"scripts/track.R"
+
+
 rule taxonomy:
 	input:
 		seqtab = rules.removeChimeras.output.seqtab,

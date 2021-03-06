@@ -13,9 +13,11 @@ errR2 <- readRDS(file=snakemake@input[['errR2']])
 filtFs <- snakemake@input[['R1']]
 filtRs <- snakemake@input[['R2']]
 
+#denoise using error model
 dadaFs <- dada(filtFs, errR1, multithread=TRUE)
 dadaRs <- dada(filtRs, errR2, multithread=TRUE)
 
+# merge forward and reverse pairs
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
 
 head(mergers[[1]])
@@ -36,3 +38,11 @@ seqtab <- seqtab[,nchar(colnames(seqtab)) %in% seq(mode-range, mode+range)]
 table(nchar(getSequences(seqtab)))
 
 saveRDS(seqtab, file=snakemake@output[['seqtab']])
+
+#track reads
+getN <- function(x) sum(getUniques(x))
+track <- cbind(sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN))
+colnames(track) <- c("derepF", "derepR", "merged")
+row.names(track) <- snakemake@params[['samples']]
+write.table(track, file=snakemake@output[['track']], sep='\t')
+

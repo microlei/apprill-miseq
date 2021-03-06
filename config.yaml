@@ -3,7 +3,7 @@
 
 
 # the path to the data
-path: "/vortexfs1/scratch/lma/SMeta/"
+path: "/vortexfs1/scratch/lma/testmiseq/"
 
 # parameters for dada2::filterAndTrim
 
@@ -26,7 +26,7 @@ multithread: TRUE
 nbases: 1e+09
 
 # parameters for trimming dereplicated reads in dereplicate.R
-derepRange: 2
+derepRange: 100
 
 # parameters for dada2.removeBimeraDenovo (unused, need to update)
 
