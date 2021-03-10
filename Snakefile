@@ -1,13 +1,12 @@
 #configurations for running the code
 #Anything you would normally "hardcode" like paths, variables for the dada2 pipeline, etc go here
-configfile: "config.yaml" 
+configfile: "config.yaml"
 
-#Gets sample names of forward reads
-
-WC = glob_wildcards(config['path']+"{names}_1.fastq.gz")
+#Gets sample names from the forward reads
+WC = glob_wildcards(config['path']+"{names}{other,_S[0-9]*_L001_}R1_001.fastq.gz") # CHANGE THIS
 SAMPLES = WC.names
-R1 = expand(config['path']+'{names}_1.fastq.gz', names=WC.names)
-R2 = expand(config['path']+'{names}_2.fastq.gz', names=WC.names)
+R1 = expand(config['path']+'{names}R1_001.fastq.gz', zip, names=[i+j for i,j, in zip(WC.names, WC.other)]) #CHANGE THIS
+R2 = expand(config['path']+'{names}R2_001.fastq.gz', zip, names=[i+j for i,j, in zip(WC.names, WC.other)]) #CHANGE THIS
 
 #local rules marks a rule as local and does not need to be submitted as a job to the cluster
 localrules: all, plotQP, track
@@ -27,19 +26,18 @@ rule all:
 rule clean:
     shell:
         '''
-        rm output/*.rds
-        rm output/*.txt
-        rm output/*.csv
-	rm logs/*
+        rm output/*
+		rm logs/*
         '''
 
 #plots quality profiles
 rule plotQP:
 	input: R1, R2
-	output: 
-		R1 = expand('output/figures/qualityProfiles/R1/{sample}_R1_qual.jpg',sample=SAMPLES),
-		R2 = expand('output/figures/qualityProfiles/R2/{sample}_R2_qual.jpg',sample=SAMPLES)
-	script: 'scripts/plotQP.R'
+	output:
+		R1 = expand('output/qualityProfiles/R1/{sample}_R1_qual.jpg',sample=SAMPLES),
+		R2 = expand('output/qualityProfiles/R2/{sample}_R2_qual.jpg',sample=SAMPLES)
+	script:
+		'scripts/plotQP.R'
 
 #quality filters R1 and R2 (forward and reverse reads)
 rule filter:
@@ -47,7 +45,7 @@ rule filter:
 		R1=R1,
 		R2=R2
 	output:
-		R1 = expand(config['path']+"filtered/{sample}_R1.fastq.gz", sample=SAMPLES), 
+		R1 = expand(config['path']+"filtered/{sample}_R1.fastq.gz", sample=SAMPLES),
 		R2 = expand(config['path']+"filtered/{sample}_R2.fastq.gz", sample=SAMPLES),
 		track = temp("output/track_filtered.txt")
 	params:
@@ -72,6 +70,7 @@ rule learnError:
 	script:
 		"scripts/learnError.R"
 
+#dereplicates and merges forward and reverse reads, finding all unique sequences
 rule dereplicate:
 	input:
 		R1 = rules.filter.output.R1,
@@ -102,6 +101,7 @@ rule removeChimeras:
 	script:
 		"scripts/removeChimeras.R"
 
+#this is how the reads are tracked
 rule track:
 	input:
 		filt = rules.filter.output.track,
@@ -114,7 +114,7 @@ rule track:
 	script:
 		"scripts/track.R"
 
-
+#assignes taxonomy using the silva database
 rule taxonomy:
 	input:
 		seqtab = rules.removeChimeras.output.seqtab,
