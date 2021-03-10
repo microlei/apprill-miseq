@@ -36,7 +36,8 @@ $ R
 conda env create -f environment.yml -n snakemakedada
 ```
 ### Download FastTreeMP
-Regardless if you manually created your environment or cloned mine, you still have to download [FastTreeMP](http://www.microbesonline.org/fasttree/#Install), the link called "Multi-threaded executable (+SSE +OpenMP)" and put it in your bin folder or add it to your `$PATH`
+Regardless if you manually created your environment or cloned mine, you still have to download [FastTreeMP](http://www.microbesonline.org/fasttree/#Install), the link called "Multi-threaded executable (+SSE +OpenMP)" and put it in your bin folder or add it to your `$PATH`.
+Make a folder `~/bin` and add your FastTree executable there. Then add that folder to your `$PATH` with `export PATH="$HOME/bin:$PATH"` or editing it in your bash profile. 
 ### Entering the environment
 Then, any time you start up poseidon (WHOI's HPC), you must use the following commands to enter the snakemake environment:
 ```

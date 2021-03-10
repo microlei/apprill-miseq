@@ -15,7 +15,6 @@ dim(seqtab.nochim)
 cat("Proportion of original: \n")
 sum(seqtab.nochim)/sum(seqtab)
 
-save.image("removeChim.RData")
 saveRDS(seqtab.nochim, file=snakemake@output[['seqtab']])
 
 #tracking files

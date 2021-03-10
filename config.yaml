@@ -29,6 +29,9 @@ nbases: 1e+08
 # Default should not exclude anything, but if you're expecting a really narrow range of read lengths, change it
 derepRange: 100
 
+# parameters for dada2::removeBimeraDenovo
+method: 'consensus'
+
 # parameters for dada2::assignTaxonomy and dada2:addSpecies
 # These paths need to be changed!
 
