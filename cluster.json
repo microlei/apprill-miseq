@@ -26,7 +26,8 @@
 	"taxonomy":
 	{
 		"job-name": "taxonomy",
-		"mem": "120gb"
+		"mem": "120gb",
+		"ntasks": 16
 	},
 	"alignment":
 	{
@@ -35,6 +36,7 @@
 	"tree":
 	{
 		"job-name": "tree",
-		"mem": "120gb"
+		"mem": "120gb",
+		"ntasks": 16
 	}
 }
